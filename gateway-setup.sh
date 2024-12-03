@@ -11,6 +11,12 @@ echo "Generating random password..."
 PASSWORD=$(openssl rand -base64 16)
 echo "Random password generated successfully"
 
+# Change the hostname
+echo "Changing hostname to kohost-gateway..."
+hostnamectl set-hostname kohost-gateway
+echo "kohost-gateway" > /etc/hostname
+echo "Hostname changed to kohost-gateway"
+
 # Create kohost user with sudo privileges
 echo "Creating kohost user..."
 useradd -m -s /bin/bash kohost
