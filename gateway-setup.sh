@@ -76,6 +76,20 @@ sudo -u kohost bash << EOF
         echo "Cloudflared already installed"
     fi
 
+    # Configure Docker daemon logging
+    echo "Configuring Docker daemon logging..."
+    sudo mkdir -p /etc/docker
+    sudo tee /etc/docker/daemon.json > /dev/null <<'EEOF'
+    {
+        "log-driver": "json-file",
+        "log-opts": {
+            "max-size": "50m",
+            "max-file": "5"
+        }
+    }
+    EEOF
+    echo "Docker logging configured"
+
     # Update and install all packages at once
     echo "Updating package lists..."
     sudo apt-get update
