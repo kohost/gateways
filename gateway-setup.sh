@@ -17,12 +17,16 @@ hostnamectl set-hostname kohost-gateway
 echo "kohost-gateway" > /etc/hostname
 echo "Hostname changed to kohost-gateway"
 
-# Create kohost user with sudo privileges
-echo "Creating kohost user..."
-useradd -m -s /bin/bash kohost
-echo "kohost:$PASSWORD" | chpasswd
-usermod -aG sudo kohost
-echo "Kohost user created successfully"
+# Create kohost user with sudo privileges if it doesn't exist
+if ! id kohost &>/dev/null; then
+    echo "Creating kohost user..."
+    useradd -m -s /bin/bash kohost
+    echo "kohost:$PASSWORD" | chpasswd
+    usermod -aG sudo kohost
+    echo "Kohost user created successfully"
+else
+    echo "User kohost already exists, skipping creation."
+fi
 
 # Configure sudo without password for kohost
 echo "Configuring sudo access..."
@@ -94,7 +98,7 @@ sudo -u kohost bash << EOF
     echo "Updating package lists..."
     sudo apt-get update
     echo "Installing required packages..."
-    sudo apt-get install -y ca-certificates curl gnupg docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin cloudflared
+    sudo apt-get install -y ca-certificates curl gnupg docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin cloudflared build-essential make gcc perl kmod 
     echo "Upgrading system packages..."
     sudo apt-get upgrade -y
     echo "Package installation complete"
@@ -132,3 +136,4 @@ sudo -u kohost bash << EOF
 
 EOF
 echo "Setup complete! The password for user 'kohost' is: $PASSWORD"
+echo "Rebooting recommended"
