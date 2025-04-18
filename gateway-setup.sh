@@ -37,7 +37,7 @@ chmod 600 /home/kohost/.ssh/authorized_keys
 chown -R kohost:kohost /home/kohost/.ssh
 
 echo "Configuring needrestart..."
-sed -i "s/^#\$nrconf{restart} = 'i';/\$nrconf{restart} = 'a';/" /etc/needrestart/needrestart.conf
+sed -i "/^#\$nrconf{restart} = 'i';/c\\\$nrconf{restart} = 'a';" /etc/needrestart/needrestart.conf
 echo "Needrestart configured"
 
 # Configure Docker daemon logging
