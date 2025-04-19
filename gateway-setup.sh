@@ -7,6 +7,7 @@ set -e
 GREEN="\033[0;32m"
 YELLOW="\033[0;33m"
 BLUE="\033[0;34m"
+RED="\033[0;31m"
 BOLD="\033[1m"
 NC="\033[0m" # No Color
 
@@ -67,6 +68,17 @@ tee /etc/docker/daemon.json > /dev/null <<'EEOF'
 EEOF
 echo -e "${GREEN}[+] Docker logging configured${NC}"
 
+# Determine Primary IP Address
+echo -e "[*] Determining primary IP address..."
+PRIMARY_IP=$(ip -4 addr show $(ip route show default | awk '{print $5}') | grep -oP '(?<=inet\s)\d+(\.\d+){3}' || echo "")
+
+if [ -z "$PRIMARY_IP" ]; then
+    echo -e "${RED}Error: Could not determine primary IP address. Exiting.${NC}"
+    exit 1
+fi
+echo -e "${GREEN}[+] Primary IP address determined: ${PRIMARY_IP}${NC}"
+export PRIMARY_IP # Export for subshell
+
 # Switch to kohost user for remaining operations
 echo -e "\n${BOLD}--- Package Installation (as kohost user) ---${NC}"
 sudo -u kohost bash << EOF
@@ -75,6 +87,7 @@ sudo -u kohost bash << EOF
     GREEN="\033[0;32m"
     YELLOW="\033[0;33m"
     BLUE="\033[0;34m"
+    RED="\033[0;31m"
     BOLD="\033[1m"
     NC="\033[0m"
 
@@ -115,7 +128,7 @@ sudo -u kohost bash << EOF
     sudo apt-get update
     echo -e "${GREEN}[+] Package lists updated.${NC}"
     echo -e "[*] Installing required packages (apt-get install)..."
-    sudo apt-get install -y ca-certificates curl gnupg docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin cloudflared build-essential make gcc perl kmod 
+    sudo apt-get install -y ca-certificates curl gnupg docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin cloudflared build-essential make gcc perl kmod net-tools
     echo -e "${GREEN}[+] Required packages installed.${NC}"
     echo -e "[*] Upgrading system packages (apt-get upgrade)..."
     sudo apt-get upgrade -y
@@ -136,8 +149,8 @@ sudo -u kohost bash << EOF
 
     # Initialize docker swarm if not already initialized
     if ! sudo docker info | grep -q "Swarm: active"; then
-        echo -e "[*] Initializing Docker Swarm..."
-        sudo docker swarm init
+        echo -e "[*] Initializing Docker Swarm (advertising on ${PRIMARY_IP})..."
+        sudo docker swarm init --advertise-addr "$PRIMARY_IP"
         echo -e "${GREEN}[+] Docker Swarm initialized.${NC}"
     else
         echo -e "${YELLOW}[-] Docker Swarm already active.${NC}"
