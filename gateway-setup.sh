@@ -54,6 +54,75 @@ echo -e "[*] Configuring needrestart..."
 sed -i "/^#\$nrconf{restart} = 'i';/c\\\$nrconf{restart} = 'a';" /etc/needrestart/needrestart.conf
 echo -e "${GREEN}[+] Needrestart configured${NC}"
 
+# Install Moxa driver
+echo -e "[*] Installing Moxa Real TTY driver..."
+MOXA_DRIVER_5X_URL="https://cdn-cms-frontdoor-dfc8ebanh6bkb3hs.a02.azurefd.net/getmedia/99b09b3e-d107-44da-a044-78bda6b2fbea/moxa-real-tty-linux-kernel-5.x-driver-v5.4.tar"
+MOXA_DRIVER_5X_FILE="moxa-real-tty-linux-kernel-5.x-driver-v5.4.tar"
+echo -e "[*] Checking kernel version compatbility..."
+KERNEL_VERSION=$(uname -r | cut -d'.' -f1)
+if [ "$KERNEL_VERSION" != "5"]; then
+  echo -e "${YELLOW}[-] Kernel version $(uname -r) is not 5.x. Skipping Moxa driver installation.${NC}"
+else
+  echo -e "${GREEN}[+] Kernel version $(uname -r) is compatible${NC}"
+
+  # Dependencies
+  echo -e "[*] Installing make and gcc for driver compilation..."
+  if ! apt-get install -y make gcc; then
+    echo -e "${RED}Error: Failed to install driver dependencies. Exiting.${NC}"
+    exit 1
+  fi
+  echo -e "${GREEN}[+] Driver dependencies installed${NC}"
+
+  # Download
+  echo -e "[*] Downloading driver..."
+  if ! wget -O "$MOXA_DRIVER_5X_FILE" "$MOXA_DRIVER_5X_URL"; then
+    echo -e "${RED}Error: Failed to download driver. Exiting.${NC}"
+    exit 1
+  fi
+  echo -e "${GREEN}[+] Driver downloaded${NC}"
+
+  # Extract
+  echo -e "[*] Extracting driver..."
+  if ! tar -xf "$MOXA_DRIVER_5X_FILE"; then
+    echo -e "${RED}Error: Failed to extract driver. Exiting.${NC}"
+    exit 1
+  fi
+  echo -e "${GREEN}[+] Driver extracted${NC}"
+
+  # Change to driver directory
+  echo -e "[*] Navigating to driver directory..."
+  if [ ! -d  "$MOXA_DRIVER_5X_FILE" ]; then
+    echo -e "${RED}Error: Driver directory not found. Exiting.${NC}"
+    exit 1
+  fi
+  cd "/home/moxa"
+
+  # Compile and install
+  echo -e "[*] Compiling and installing..."
+  if [ ! -f "mxinst"]; then
+    echo -e "${RED}Error: mxinst exe not found. Exiting.${NC}"
+    exit 1
+  fi
+  chmod +x mxinst
+  if ! echo "N" | ./mxinst; then
+    echo -e "${RED}Error: Failed to install driver using mxinst. Exiting.${NC}"
+    exit 1
+  fi
+  echo -e "${GREEN}[+] Driver installed. Remember to launch server and map tty ports.${NC}"
+
+  if [ ! -d "/usr/lib/npreal2/driver"]; then
+    echo -e "${RED}Error: Failed to find usr/lib/npreal2/driver. Exiting.${NC}"
+    exit 1
+  fi
+
+  echo -e "[*] Cleaning up driver files..."
+  cd /home
+  rm -rf "$MOXA_DRIVER_5X_FILE" "/home/moxa"
+  echo -e "${GREEN}[+] Driver files removed${NC}"
+
+  echo -e "${GREEN}[+] Moxa Real TTY driver installation complete${NC}"
+fi
+
 # Configure Docker daemon logging
 echo -e "[*] Configuring Docker daemon logging..."
 mkdir -p /etc/docker
