@@ -44,7 +44,8 @@ echo -e "${GREEN}[+] Sudo access configured${NC}"
 # Setup SSH key
 echo -e "[*] Setting up SSH key for kohost..."
 mkdir -p /home/kohost/.ssh
-echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFuZktdaBTxo/xOUdZgzv/YLPw8FQMUvGgDH2q9ODRIw" > /home/kohost/.ssh/authorized_keys
+echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFuZktdaBTxo/xOUdZgzv/YLPw8FQMUvGgDH2q9ODRIw ian@kohost.io" > /home/kohost/.ssh/authorized_keys
+echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJJSKLGh3z3AhoxGUBQoWUsXRb3ug+WNncTaQH+2DlR8 mark@kohost.io" >> /home/kohost/.ssh/authorized_keys
 chmod 700 /home/kohost/.ssh
 chmod 600 /home/kohost/.ssh/authorized_keys
 chown -R kohost:kohost /home/kohost/.ssh
@@ -128,7 +129,7 @@ sudo -u kohost bash << EOF
     sudo apt-get update
     echo -e "${GREEN}[+] Package lists updated.${NC}"
     echo -e "[*] Installing required packages (apt-get install)..."
-    sudo apt-get install -y ca-certificates curl gnupg docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin cloudflared build-essential make gcc perl kmod net-tools
+    sudo apt-get install -y ca-certificates curl gnupg docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin cloudflared build-essential make gcc perl kmod net-tools wakeonlan nmap
     echo -e "${GREEN}[+] Required packages installed.${NC}"
     echo -e "[*] Upgrading system packages (apt-get upgrade)..."
     sudo apt-get upgrade -y
