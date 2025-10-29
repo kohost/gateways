@@ -1,0 +1,39 @@
+version: "3.9"
+
+x-amqp: &amqp
+  MQ_PROTOCOL: amqp
+  MQ_HOSTNAME: mq
+  MQ_USERNAME: kohost
+  MQ_PASSWORD_FILE: /run/secrets/mqPassword
+  MQ_PORT: 5672
+
+x-common: &common
+  KOHOST_API_ORGANIZATION_ID: ${ORGANIZATION_ID}
+  KOHOST_API_PROPERTY_ID: ${PROPERTY_ID}
+  DEBUG: kohost*
+
+services:
+  mq:
+    image: kohost/rabbitmq:3.12
+    hostname: mq
+    environment:
+      RABBITMQ_DEFAULT_USER: kohost
+      RABBITMQ_NODENAME: ${ORGANIZATION_ID}-gateway
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    ports:
+      - 15672:15672
+
+  redis:
+    image: kohost/redis:6.2
+    hostname: redis
+    volumes:
+      - redis_data:/data
+
+volumes:
+  rabbitmq_data:
+  redis_data:
+
+secrets:
+  mqPassword:
+    external: true

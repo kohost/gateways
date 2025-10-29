@@ -1,0 +1,46 @@
+x-amqp: &amqp
+  MQ_PROTOCOL: amqp
+  MQ_HOSTNAME: mq
+  MQ_USERNAME: kohost
+  MQ_PASSWORD: ${MQ_PASSWORD}
+  MQ_PORT: 5672
+
+x-common: &common
+  KOHOST_API_PROPERTY_ID: ${KOHOST_PROPERTY_ID}
+  KOHOST_API_ORGANIZATION_ID: ${KOHOST_ORGANIZATION_ID}
+  DEBUG: kohost*
+
+x-driver-config: &driver-config
+  networks:
+    - overlay
+  labels:
+    - autoheal=true
+
+services:
+  autoheal:
+    image: willfarrell/autoheal
+    deploy:
+      replicas: 1
+    environment:
+      AUTOHEAL_CONTAINER_LABEL: autoheal
+    network_mode: none
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  mediamtx:
+    image: bluenviron/mediamtx:1.13.1
+    ports:
+      # WebRTC
+      - "8889:8889"
+      - "8890:8890/udp"
+      - "8189:8189/udp"
+    volumes:
+      - /home/kohost/mediamtx:/conf:ro
+    command: /conf/mediamtx.yml
+    restart: always
+
+networks:
+  overlay:
+    name: kohost_overlay
+    external: true

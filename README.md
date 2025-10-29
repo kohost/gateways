@@ -1,6 +1,7 @@
 # Ubuntu Server Setup Script
 
 Automated setup script for Ubuntu servers that:
+
 - Creates sudo user 'kohost'
 - Installs Docker and Cloudflared
 - Configures Docker Swarm and Portainer agent
@@ -14,7 +15,7 @@ curl -s https://raw.githubusercontent.com/kohost/gateways/refs/heads/master/gate
 
 ## Prerequisites
 
-- Ubuntu server (tested on 20.04, 22.04)
+- Ubuntu server (tested on 20.04, 22.04, 24.04)
 - Root/sudo access
 - Internet connectivity
 - Cloudflare tunnel token
